@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-mongo.connect('localhost:27017/testeapi');
+mongo.connect('mongo:27017/testeapi');
 
 //Esquema da collection do Mongo
 var taskListSchema = mongo.Schema({
@@ -61,7 +61,7 @@ app.post("/api/add", function (req, res) {
 			res.json({'status' : 200});
 		}
 	});
-	res.json(register);
+	res.send(register);
 });
 
 //PUT - Atualiza um registro
