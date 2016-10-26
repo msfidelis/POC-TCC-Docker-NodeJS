@@ -5,13 +5,14 @@ var mongo = require('mongoose');
 var bodyParser = require('body-parser');
 var app = express();
 
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(bodyParser.json());
-
 mongo.connect('localhost:27017/testeapi');
+
+//Esquema da collection do Mongo
 var taskListSchema = mongo.Schema({
 	descricao : { type: String }, 
 	concluido : Boolean,
@@ -23,8 +24,16 @@ var taskListSchema = mongo.Schema({
 var Model = mongo.model('Model', taskListSchema);
 
 //GET param - Retorna o registro correspondente da ID informada
-app.get("/get/:id", function (req, res) {
-	res.json({id});
+app.get("/get/:descricao?", function (req, res) {
+	var descricao = req.params.descricao;
+	Model.find({'descricao': descricao}, function(err, regs) {
+		if (err) {
+			console.log(err);
+			res.send(err);
+		} else {
+			res.json(regs);
+		}
+	});
 });
 
 //GET - Retorna todos os registros existentes no banco
@@ -44,20 +53,31 @@ app.post("/api/add", function (req, res) {
 		'descricao' : req.body.descricao,
 		'concluido' : req.body.concluido
 	});
-
-	register.save();
-
+	register.save(function (err) {
+		if (err) {
+			console.log(err);
+			res.send(err);
+		} else {
+			res.json({'status' : 200});
+		}
+	});
 	res.json(register);
 });
 
 //PUT - Atualiza um registro
-app.put("/api/add/:id/:descricao/:concluido", function (req, res) {
-
+app.put("/api/add/:id", function (req, res) {
+	Model.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
+    if (err) return next(err);
+    	res.json(post);
+  });
 });
 
 //DELETE - Deleta um registro
 app.delete("/api/delete/:id", function (req, res) {
-
+ Model.findByIdAndRemove(req.params.id, req.body, function (err, post) {
+    if (err) return next(err);
+    res.json(post);
+  });
 });	
 
 //Porta de escuta do servidor
