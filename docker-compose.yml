@@ -1,0 +1,19 @@
+
+mongo:
+  image: mongo:3.0.4
+  ports:
+   - "27017:27017"
+  volumes:
+   - './data:/data/db'
+application:
+  build: .
+  command:  node --debug=5858 app.js --color=always
+  ports:
+   - "80:80"
+   - "8080:8080"
+   - "3000:3000"
+   - "5858:5858"
+  volumes:
+   - ./app:/usr/src/app
+  links:
+   - mongo
