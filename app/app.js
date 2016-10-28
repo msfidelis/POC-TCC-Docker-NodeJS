@@ -10,7 +10,10 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-mongo.connect('mongo:27017/testeapi');
+//Conexão com o MongoDB
+var mongoaddr = 'mongodb://' + process.env.MONGO_PORT_27017_TCP_ADDR + ':27017/testeapi';
+console.log(mongoaddr);
+mongo.connect(mongoaddr);
 
 //Esquema da collection do Mongo
 var taskListSchema = mongo.Schema({
@@ -19,9 +22,8 @@ var taskListSchema = mongo.Schema({
 	updated_at: { type: Date, default: Date.now },
 });
 
-
 //Model da aplicação
-var Model = mongo.model('Model', taskListSchema);
+var Model = mongo.model('Tasks', taskListSchema);
 
 //GET param - Retorna o registro correspondente da ID informada
 app.get("/get/:descricao?", function (req, res) {
@@ -36,6 +38,23 @@ app.get("/get/:descricao?", function (req, res) {
 	});
 });
 
+//POST - Adiciona um registro
+app.post("/api/add", function (req, res) {
+	var register = new Model({
+		'descricao' : req.body.descricao,
+		'concluido' : req.body.concluido
+	});
+	register.save(function (err) {
+		if (err) {
+			console.log(err);
+			res.send(err);
+			res.end();
+		}
+	});
+	res.send(register);
+	res.end();
+});
+
 //GET - Retorna todos os registros existentes no banco
 app.get("/api/all", function (req, res) {
 	Model.find(function(err, todos) {
@@ -47,28 +66,14 @@ app.get("/api/all", function (req, res) {
 	})
 });
 
-//POST - Adiciona um registro
-app.post("/api/add", function (req, res) {
-	var register = new Model({
-		'descricao' : req.body.descricao,
-		'concluido' : req.body.concluido
-	});
-	register.save(function (err) {
-		if (err) {
-			console.log(err);
-			res.send(err);
-		} else {
-			res.json({'status' : 200});
-		}
-	});
-	res.send(register);
-});
-
 //PUT - Atualiza um registro
 app.put("/api/add/:id", function (req, res) {
 	Model.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
-    if (err) return next(err);
+    if (err)  {
+    	return next(err);
+    } else {
     	res.json(post);
+    }
   });
 });
 
